@@ -16,18 +16,19 @@ object ClimateService {
    * @param description "my awesome sentence contains a key word like climate change"
    * @return Boolean True
    */
-  def isClimateRelated(description: String): Boolean = ???
+  def isClimateRelated(description: String): Boolean = {
+    val keywords = List("global warming", "IPCC", "climate change")
+    keywords.exists(keyword => description.toLowerCase.contains(keyword.toLowerCase))
+  }
 
-  /**
-   * parse a list of raw data and transport it with type into a list of CO2Record
-   * if the ppm value is valid (some ppm values are negative (CO2Record's "isValidPpmValue" function))
-   * --> Some(value)
-   * otherwise : None
-   * you can access to Tuple with myTuple._1, myTuple._2, myTuple._3
-   */
   def parseRawData(list: List[(Int, Int, Double)]) : List[Option[CO2Record]] = {
-    list.map { record => ??? }
-    ???
+    list.map { record =>
+      val (year, month, ppm) = record
+      if (CO2Record.isValidPpmValue(ppm))
+        Some(CO2Record(year, month, ppm))
+      else
+        None
+    }
   }
 
   /**
@@ -36,7 +37,9 @@ object ClimateService {
    * @param list
    * @return a list
    */
-  def filterDecemberData(list: List[Option[CO2Record]]) : List[CO2Record] = ???
+  def filterDecemberData(list: List[Option[CO2Record]]) : List[CO2Record] = {
+    list.flatten.filter(_.month != 12)
+  }
 
 
   /**
@@ -67,6 +70,15 @@ object ClimateService {
    * from: https://scrippsco2.ucsd.edu/data/atmospheric_co2/primary_mlo_co2_record.html
    * @return List of CO2 record
    */
+  def findDifference(records: List[CO2Record]): Option[Double] = {
+    val ppmValues = records.map(_.ppm)
+    if (ppmValues.isEmpty)
+      None
+    else
+      Some(ppmValues.max - ppmValues.min)
+  }
+
+
   def getCO2RawDataFromHawaii() : List[(Int, Int, Double)] = {
     List(
       (1958, 3, 316.19),
